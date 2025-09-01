@@ -2,14 +2,14 @@ pipeline {
     agent any
     
     tools {
-        maven 'Maven-3.9.9'  // Define Maven tool installed in Jenkins
-        jdk 'JDK17'    // Define JDK installed in Jenkins
+        maven 'Maven-3.9.9'  
+        jdk 'JDK17'    
     }
 
     environment {
         TOMCAT_USER = 'rohan'
         TOMCAT_PASS = 'pass@1234'
-        TOMCAT_URL  = 'http://localhost:8091/manager/text'
+        TOMCAT_URL  = 'http://localhost:8080/manager/text'
     }
 
     stages {
@@ -20,9 +20,26 @@ pipeline {
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
             }
         }
 
@@ -42,10 +59,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and Deploy Successful!"
+            echo "✅ Build + Test + Deploy Successful!"
         }
         failure {
-            echo "❌ Build or Deploy Failed!"
+            echo "❌ Pipeline Failed!"
         }
     }
 }
