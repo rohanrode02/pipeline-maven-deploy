@@ -13,5 +13,5 @@ public class AppTest {
     public void testSubtraction() {
         int result = 10 - 5;
         assertEquals(5, result, "10-5 should be 5");
-    }
+    }
 }
