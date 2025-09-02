@@ -7,9 +7,7 @@ pipeline {
     }
 
     environment {
-        TOMCAT_USER = 'rohan'
-        TOMCAT_PASS = 'pass@1234'
-        TOMCAT_URL  = 'http://localhost:8080/manager/text'
+        SONARQUBE = 'SonarQube'   // The name you configured
     }
 
     stages {
@@ -37,29 +35,24 @@ pipeline {
             }
         }
 
-        stage('Package') {
+        stage('SonarQube Analysis') {
             steps {
-                sh 'mvn package'
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=pipeline-demo'
+                }
             }
         }
 
-        stage('Deploy to Tomcat') {
+        stage('Package') {
             steps {
-                script {
-                    def warFile = sh(script: "ls target/*.war", returnStdout: true).trim()
-                    sh """
-                        curl -u $TOMCAT_USER:$TOMCAT_PASS \
-                        --upload-file $warFile \
-                        "$TOMCAT_URL/deploy?path=/pipelineapp&update=true"
-                    """
-                }
+                sh 'mvn package'
             }
         }
     }
 
     post {
         success {
-            echo "✅ Build + Test + Deploy Successful!"
+            echo "✅ Build + Test + SonarQube Analysis Passed!"
         }
         failure {
             echo "❌ Pipeline Failed!"
